@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ICPC Problem Creator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- KaTeX for LaTeX preview -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #0D1F3C;
+      --primary-light: #eef1f8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --blue: #2563eb;
+      --gray-100: #f9fafb;
+      --gray-200: #f3f4f6;
+      --gray-300: #e5e7eb;
+      --gray-400: #9ca3af;
+      --gray-600: #4b5563;
+      --gray-800: #1f2937;
+      --radius: 12px;
+      --shadow: 0 4px 16px rgba(0,0,0,0.07);
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f0f4f8 0%, #e8eef5 100%);
+      min-height: 100vh;
+      color: var(--gray-800);
+    }
+
+    /* ─── Auth screen ──────────────────────────────── */
+    #auth-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+    .auth-box {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+    .auth-box h2 { color: var(--primary); font-size: 1.3rem; margin-bottom: 0.4rem; }
+    .auth-box p  { color: var(--gray-400); font-size: 0.83rem; margin-bottom: 1.5rem; }
+
+    /* ─── App shell ────────────────────────────────── */
+    #app-screen { display: none; }
+
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--gray-300);
+      padding: 0 1.5rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-brand {
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+      color: var(--gray-600);
+    }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem; }
+
+    /* ─── Cards ────────────────────────────────────── */
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid var(--gray-300);
+    }
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ─── Form ──────────────────────────────────────── */
+    .form-group { margin-bottom: 1.2rem; }
+    .form-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .form-control {
+      width: 100%;
+      padding: 0.62rem 0.85rem;
+      border: 1.5px solid var(--gray-300);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      background: var(--gray-100);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(13,31,60,0.08);
+    }
+    textarea.form-control {
+      min-height: 110px;
+      resize: vertical;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.83rem;
+      line-height: 1.65;
+    }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 600px) { .row-2 { grid-template-columns: 1fr; } }
+
+    /* ─── Difficulty ────────────────────────────────── */
+    .diff-group { display: flex; gap: 0.5rem; }
+    .diff-btn {
+      padding: 0.38rem 0.9rem;
+      border-radius: 8px;
+      border: 1.5px solid var(--gray-300);
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: var(--gray-100);
+      color: var(--gray-600);
+      transition: all 0.15s;
+    }
+    .diff-btn.active[data-v="easy"]   { border-color:#10b981;background:#d1fae5;color:#065f46; }
+    .diff-btn.active[data-v="medium"] { border-color:#f59e0b;background:#fef3c7;color:#92400e; }
+    .diff-btn.active[data-v="hard"]   { border-color:#ef4444;background:#fee2e2;color:#991b1b; }
+
+    /* ─── Tags ──────────────────────────────────────── */
+    .tags-wrap { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.45rem; }
+    .tag {
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 0.22rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .tag button { background:none; border:none; cursor:pointer; color:inherit; font-size:0.95rem; line-height:1; padding:0; }
+
+    /* ─── IO cards ──────────────────────────────────── */
+    .io-card {
+      background: var(--gray-100);
+      border: 1.5px solid var(--gray-300);
+      border-radius: 10px;
+      padding: 0.9rem;
+      margin-bottom: 0.65rem;
+      position: relative;
+    }
+    .io-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.7rem;
+    }
+    .io-header span { font-size: 0.82rem; font-weight: 700; color: var(--primary); }
+    .btn-remove {
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.22rem 0.55rem;
+      font-size: 0.72rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    /* ─── LaTeX preview ─────────────────────────────── */
+    .latex-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.74rem;
+      color: var(--blue);
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 0.15rem 0;
+      margin-top: 0.3rem;
+      font-weight: 600;
+    }
+    .latex-preview {
+      display: none;
+      background: white;
+      border: 1.5px solid var(--gray-300);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-top: 0.4rem;
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+    .latex-preview.visible { display: block; }
+
+    /* ─── Buttons ───────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+    }
+    .btn-primary  { background: var(--primary); color: white; }
+    .btn-primary:hover { background: #1a3050; transform: translateY(-1px); }
+    .btn-ghost { background: var(--gray-100); color: var(--gray-600); border: 1.5px solid var(--gray-300); }
+    .btn-ghost:hover { background: var(--gray-200); }
+    .btn-danger { background: #fee2e2; color: var(--danger); border: 1.5px solid #fca5a5; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
+
+    .actions { display: flex; gap: 0.65rem; flex-wrap: wrap; margin-top: 1.25rem; }
+
+    /* ─── Result box ────────────────────────────────── */
+    .result-box {
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-top: 1.5rem;
+      display: none;
+    }
+    .result-box.show { display: block; animation: fadeUp 0.3s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+    .link-display {
+      background: white;
+      border: 1.5px solid var(--gray-300);
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--primary);
+      word-break: break-all;
+      margin: 0.65rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem;
+    }
+    .copy-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ─── Problem Bank list ─────────────────────────── */
+    .bank-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.7rem 0.9rem;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .bank-item:hover { background: var(--primary-light); }
+    .bank-badge {
+      width: 30px; height: 30px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.75rem; color: white;
+      flex-shrink: 0;
+    }
+    .bank-badge.easy   { background: #10b981; }
+    .bank-badge.medium { background: #f59e0b; }
+    .bank-badge.hard   { background: #ef4444; }
+
+    /* ─── Tabs ──────────────────────────────────────── */
+    .tabs { display: flex; gap: 0; border-bottom: 1.5px solid var(--gray-300); margin-bottom: 1.5rem; }
+    .tab-btn {
+      padding: 0.7rem 1.1rem;
+      font-size: 0.84rem;
+      font-weight: 600;
+      border: none;
+      background: none;
+      color: var(--gray-400);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1.5px;
+      transition: color 0.15s;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    /* ─── Toast ─────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      padding: 0.8rem 1.2rem; border-radius: 10px;
+      font-weight: 600; font-size: 0.83rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      z-index: 9999; animation: slideIn 0.25s ease;
+    }
+    @keyframes slideIn { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
+    .toast-success { background: var(--success); color: white; }
+    .toast-error   { background: var(--danger); color: white; }
+    .toast-info    { background: #0D1F3C; color: white; }
+    .toast-warning { background: var(--warning); color: white; }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-radius: 50%; border-top-color: white;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════ AUTH SCREEN ══════════════════ -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div style="font-size:2.5rem;margin-bottom:0.75rem">⚔️</div>
+    <h2>Problem Creator</h2>
+    <p>Sign in with your admin account to continue</p>
+    <div class="form-group" style="text-align:left">
+      <label class="form-label">Email</label>
+      <input type="email" id="login-email" class="form-control" placeholder="admin@example.com" />
+    </div>
+    <div class="form-group" style="text-align:left">
+      <label class="form-label">Password</label>
+      <input type="password" id="login-password" class="form-control" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" id="login-btn" onclick="doLogin()">Sign In</button>
+    <div id="login-error" style="color:var(--danger);font-size:0.78rem;margin-top:0.75rem"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ APP SCREEN ════════════════════ -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="topbar-brand">⚔️ Problem Creator</div>
+    <div class="topbar-user">
+      <span id="user-email-display"></span>
+      <button class="btn btn-ghost" style="padding:0.35rem 0.75rem;font-size:0.75rem" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-create-btn" onclick="switchTab('create')">✏️ Create Problem</button>
+      <button class="tab-btn" id="tab-bank-btn" onclick="switchTab('bank')">📚 Problem Bank</button>
+    </div>
+
+    <!-- ── CREATE TAB ── -->
+    <div id="tab-create">
+
+      <div class="card">
+        <div class="section-title">📝 Basic Info</div>
+        <div class="form-group">
+          <label class="form-label">Problem Title</label>
+          <input type="text" id="p-title" class="form-control" placeholder="e.g. Maximum Subarray Sum" />
+        </div>
+        <div class="row-2">
+          <div class="form-group">
+            <label class="form-label">Difficulty</label>
+            <div class="diff-group">
+              <button class="diff-btn" data-v="easy"   onclick="setDiff(this)">Easy</button>
+              <button class="diff-btn active" data-v="medium" onclick="setDiff(this)">Medium</button>
+              <button class="diff-btn" data-v="hard"   onclick="setDiff(this)">Hard</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tags (press Enter to add)</label>
+            <input type="text" id="tag-input" class="form-control" placeholder="e.g. dp, greedy, math" onkeydown="handleTagKey(event)" />
+            <div class="tags-wrap" id="tags-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">📄 Problem Statement</div>
+        <div class="form-group">
+          <label class="form-label">Statement <span style="font-weight:400;color:var(--gray-400)">— $LaTeX$ supported</span></label>
+          <textarea id="p-statement" class="form-control" placeholder="Describe the problem here. Supports $LaTeX$ math."></textarea>
+          <button class="latex-toggle" onclick="togglePreview('prev-stmt','p-statement')">👁 Preview LaTeX</button>
+          <div class="latex-preview" id="prev-stmt"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Constraints <span style="font-weight:400;color:var(--gray-400)">— $LaTeX$ supported</span></label>
+          <textarea id="p-constraints" class="form-control" style="min-height:75px" placeholder="$1 \le n \le 10^5$&#10;$1 \le a_i \le 10^9$"></textarea>
+          <button class="latex-toggle" onclick="togglePreview('prev-con','p-constraints')">👁 Preview LaTeX</button>
+          <div class="latex-preview" id="prev-con"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">
+          <span>💡 Examples <span style="font-weight:400;font-size:0.82rem;color:var(--gray-400)">(shown to students)</span></span>
+          <button class="btn btn-ghost" style="padding:0.35rem 0.75rem;font-size:0.8rem" onclick="addExample()">+ Add Example</button>
+        </div>
+        <div id="examples-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">
+          <span>🔒 Hidden Test Cases</span>
+          <button class="btn btn-ghost" style="padding:0.35rem 0.75rem;font-size:0.8rem" onclick="addTest()">+ Add Test</button>
+        </div>
+        <div id="tests-list"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="save-btn" onclick="saveProblem()">💾 Save to Bank</button>
+        <button class="btn btn-ghost" onclick="clearForm()">🗑 Clear</button>
+      </div>
+
+      <div class="result-box" id="result-box">
+        <div style="font-weight:700;color:var(--success);margin-bottom:0.4rem">✅ Problem saved to bank!</div>
+        <div style="font-size:0.8rem;color:var(--gray-600);margin-bottom:0.6rem">Share this link or paste the Problem ID into the Admin Panel:</div>
+        <div class="link-display">
+          <span id="problem-link">https://…</span>
+          <button class="copy-btn" onclick="copyLink()">📋 Copy</button>
+        </div>
+        <div style="font-size:0.76rem;color:var(--gray-400)">
+          Problem ID: <code id="problem-id" style="background:var(--gray-200);padding:0.1rem 0.4rem;border-radius:4px;font-family:'JetBrains Mono',monospace"></code>
+        </div>
+      </div>
+
+    </div><!-- /tab-create -->
+
+    <!-- ── BANK TAB ── -->
+    <div id="tab-bank" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <div style="font-size:0.83rem;color:var(--gray-400)" id="bank-count">Loading…</div>
+        <input type="text" id="bank-search" class="form-control" style="max-width:220px;padding:0.45rem 0.75rem"
+               placeholder="🔍 Search…" oninput="filterBank(this.value)" />
+      </div>
+      <div id="bank-list"></div>
+    </div>
+
+  </div><!-- /container -->
+</div><!-- /app-screen -->
+
+
+<!-- ══════════════════ FIREBASE + LOGIC ══════════════════ -->
+<script type="module">
+// ─────────────────────────────────────────────────────────
+//  ⚠️  REPLACE these values with your actual Firebase config
+// ─────────────────────────────────────────────────────────
+import { initializeApp }         from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+                                  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const FIREBASE_CONFIG = {
+  apiKey:            "REPLACE_ME",
+  authDomain:        "REPLACE_ME.firebaseapp.com",
+  projectId:         "REPLACE_ME",
+  storageBucket:     "REPLACE_ME.appspot.com",
+  messagingSenderId: "REPLACE_ME",
+  appId:             "REPLACE_ME",
+};
+
+// ─────────────────────────────────────────────────────────
+//  ⚠️  REPLACE with your deployed Railway / Render URL
+// ─────────────────────────────────────────────────────────
+const API_BASE = 'https://your-problem-api.railway.app';
+
+// ── Init Firebase ────────────────────────────────────────
+const firebaseApp = initializeApp(FIREBASE_CONFIG);
+const auth        = getAuth(firebaseApp);
+
+// ── State ────────────────────────────────────────────────
+let currentUser  = null;
+let currentDiff  = 'medium';
+let tags         = [];
+let bankProblems = [];
+
+// ── Auth state ───────────────────────────────────────────
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+  if (user) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display  = 'block';
+    document.getElementById('user-email-display').textContent = user.email;
+    loadBank();
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display  = 'none';
+  }
+});
+
+// ── Login / Logout ───────────────────────────────────────
+window.doLogin = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  const btn   = document.getElementById('login-btn');
+  const err   = document.getElementById('login-error');
+  err.textContent = '';
+  btn.innerHTML = '<span class="spinner"></span> Signing in…';
+  btn.disabled  = true;
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch (e) {
+    err.textContent = e.message.replace('Firebase: ', '');
+  } finally {
+    btn.textContent = 'Sign In';
+    btn.disabled    = false;
+  }
+};
+
+window.doLogout = () => signOut(auth);
+
+// ── Tab switching ────────────────────────────────────────
+window.switchTab = (tab) => {
+  document.getElementById('tab-create').style.display = tab === 'create' ? 'block' : 'none';
+  document.getElementById('tab-bank').style.display   = tab === 'bank'   ? 'block' : 'none';
+  document.getElementById('tab-create-btn').classList.toggle('active', tab === 'create');
+  document.getElementById('tab-bank-btn').classList.toggle('active', tab === 'bank');
+  if (tab === 'bank') loadBank();
+};
+
+// ── Difficulty ───────────────────────────────────────────
+window.setDiff = (el) => {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentDiff = el.dataset.v;
+};
+
+// ── Tags ─────────────────────────────────────────────────
+window.handleTagKey = (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const val = e.target.value.trim().toLowerCase();
+  if (val && !tags.includes(val)) { tags.push(val); renderTags(); }
+  e.target.value = '';
+};
+function renderTags() {
+  document.getElementById('tags-container').innerHTML = tags.map(t => `
+    <div class="tag">${t}
+      <button onclick="tags=tags.filter(x=>x!=='${t}');renderTags()">×</button>
+    </div>`).join('');
+}
+window.renderTags = renderTags;
+
+// ── LaTeX preview ────────────────────────────────────────
+window.togglePreview = (boxId, taId) => {
+  const box = document.getElementById(boxId);
+  box.classList.toggle('visible');
+  if (box.classList.contains('visible')) {
+    box.textContent = document.getElementById(taId).value;
+    if (window.renderMathInElement) renderMathInElement(box, { delimiters:[{left:'$',right:'$',display:false},{left:'$$',right:'$$',display:true}] });
+  }
+};
+
+// ── Add example / test rows ──────────────────────────────
+window.addExample = (data = {}) => {
+  const c = document.getElementById('examples-list');
+  const i = c.children.length;
+  const d = document.createElement('div');
+  d.className = 'io-card';
+  d.innerHTML = `
+    <div class="io-header">
+      <span>Example ${i + 1}</span>
+      <button class="btn-remove" onclick="this.closest('.io-card').remove();renumberIO('examples-list','Example')">Remove</button>
+    </div>
+    <div class="row-2">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" style="font-size:0.7rem">Input</label>
+        <textarea class="form-control ex-input" rows="3" placeholder="5\n1 2 3 4 5">${data.input||''}</textarea>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" style="font-size:0.7rem">Output</label>
+        <textarea class="form-control ex-output" rows="3" placeholder="15">${data.output||''}</textarea>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:0.6rem;margin-bottom:0">
+      <label class="form-label" style="font-size:0.7rem">Explanation (optional)</label>
+      <textarea class="form-control ex-explanation" rows="2" placeholder="Optional — supports $LaTeX$">${data.explanation||''}</textarea>
+    </div>`;
+  c.appendChild(d);
+};
+
+window.addTest = (data = {}) => {
+  const c = document.getElementById('tests-list');
+  const i = c.children.length;
+  const d = document.createElement('div');
+  d.className = 'io-card';
+  d.innerHTML = `
+    <div class="io-header">
+      <span>Test Case ${i + 1}</span>
+      <button class="btn-remove" onclick="this.closest('.io-card').remove();renumberIO('tests-list','Test Case')">Remove</button>
+    </div>
+    <div class="row-2">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" style="font-size:0.7rem">Input</label>
+        <textarea class="form-control tc-input" rows="3" placeholder="Hidden input">${data.input||''}</textarea>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" style="font-size:0.7rem">Expected Output</label>
+        <textarea class="form-control tc-output" rows="3" placeholder="Expected output">${data.output||''}</textarea>
+      </div>
+    </div>`;
+  c.appendChild(d);
+};
+
+window.renumberIO = (listId, label) => {
+  [...document.querySelectorAll(`#${listId} .io-card`)].forEach((card, i) => {
+    card.querySelector('.io-header span').textContent = `${label} ${i + 1}`;
+  });
+};
+
+function collectExamples() {
+  return [...document.querySelectorAll('#examples-list .io-card')].map(c => ({
+    input:       c.querySelector('.ex-input')?.value?.trim()       || '',
+    output:      c.querySelector('.ex-output')?.value?.trim()      || '',
+    explanation: c.querySelector('.ex-explanation')?.value?.trim() || '',
+  })).filter(e => e.input || e.output);
+}
+function collectTests() {
+  return [...document.querySelectorAll('#tests-list .io-card')].map(c => ({
+    input:  c.querySelector('.tc-input')?.value?.trim()  || '',
+    output: c.querySelector('.tc-output')?.value?.trim() || '',
+  })).filter(t => t.input || t.output);
+}
+
+// ── Save problem ─────────────────────────────────────────
+window.saveProblem = async () => {
+  const title     = document.getElementById('p-title').value.trim();
+  const statement = document.getElementById('p-statement').value.trim();
+  if (!title)     { showToast('Title is required', 'error'); return; }
+  if (!statement) { showToast('Statement is required', 'error'); return; }
+
+  const btn = document.getElementById('save-btn');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+  btn.disabled  = true;
+
+  try {
+    const idToken = await currentUser.getIdToken();
+    const resp = await fetch(`${API_BASE}/api/problems`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+      body: JSON.stringify({
+        title,
+        statement,
+        constraints: document.getElementById('p-constraints').value.trim(),
+        difficulty:  currentDiff,
+        tags,
+        examples: collectExamples(),
+        tests:    collectTests(),
+      }),
+    });
+    const data = await resp.json();
+    if (data.success) {
+      document.getElementById('problem-link').textContent = data.shareableLink;
+      document.getElementById('problem-id').textContent   = data.problemId;
+      document.getElementById('result-box').classList.add('show');
+      showToast('Problem saved to bank!', 'success');
+      loadBank();
+    } else {
+      throw new Error(data.error || 'Server error');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    btn.innerHTML = orig;
+    btn.disabled  = false;
+  }
+};
+
+window.copyLink = () => {
+  navigator.clipboard.writeText(document.getElementById('problem-link').textContent)
+    .then(() => showToast('Link copied!', 'success'));
+};
+
+window.clearForm = () => {
+  ['p-title','p-statement','p-constraints','tag-input'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('examples-list').innerHTML = '';
+  document.getElementById('tests-list').innerHTML    = '';
+  document.querySelectorAll('.diff-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.v === 'medium');
+  });
+  currentDiff = 'medium';
+  tags = [];
+  renderTags();
+  document.getElementById('result-box').classList.remove('show');
+  ['prev-stmt','prev-con'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.classList.remove('visible');
+  });
+  showToast('Form cleared', 'info');
+};
+
+// ── Problem Bank ─────────────────────────────────────────
+async function loadBank() {
+  if (!currentUser) return;
+  try {
+    const idToken = await currentUser.getIdToken();
+    const resp    = await fetch(`${API_BASE}/api/problems`, {
+      headers: { 'Authorization': `Bearer ${idToken}` },
+    });
+    const data = await resp.json();
+    bankProblems = data.problems || [];
+    renderBank(bankProblems);
+  } catch (e) {
+    document.getElementById('bank-list').innerHTML =
+      `<p style="color:var(--danger);font-size:0.83rem">Failed to load: ${e.message}</p>`;
+  }
+}
+
+function renderBank(list) {
+  const count = document.getElementById('bank-count');
+  count.textContent = `${list.length} problem${list.length !== 1 ? 's' : ''} in bank`;
+  if (!list.length) {
+    document.getElementById('bank-list').innerHTML =
+      `<div style="text-align:center;padding:3rem;color:var(--gray-400);font-size:0.85rem">No problems yet. Create one in the ✏️ tab.</div>`;
+    return;
+  }
+  document.getElementById('bank-list').innerHTML = list.map(p => `
+    <div class="bank-item" onclick="loadProblemIntoForm('${p.id}')">
+      <div class="bank-badge ${p.difficulty || 'medium'}">${(p.difficulty||'M')[0].toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:0.86rem;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</div>
+        <div style="font-size:0.72rem;color:var(--gray-400)">${(p.tags||[]).join(', ')||'no tags'} · ${(p.examples||[]).length} examples · ${(p.tests||[]).length} tests</div>
+      </div>
+      ${p.shareableLink
+        ? `<a href="${p.shareableLink}" target="_blank" style="font-size:0.74rem;color:var(--blue);flex-shrink:0" onclick="event.stopPropagation()">View ↗</a>`
+        : ''}
+    </div>`).join('');
+}
+
+window.filterBank = (q) => {
+  const lq = q.toLowerCase();
+  renderBank(bankProblems.filter(p =>
+    p.title.toLowerCase().includes(lq) ||
+    (p.tags||[]).some(t => t.includes(lq))
+  ));
+};
+
+window.loadProblemIntoForm = (id) => {
+  const p = bankProblems.find(x => x.id === id);
+  if (!p) return;
+  switchTab('create');
+  document.getElementById('p-title').value       = p.title       || '';
+  document.getElementById('p-statement').value   = p.statement   || '';
+  document.getElementById('p-constraints').value = p.constraints || '';
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.toggle('active', b.dataset.v === (p.difficulty||'medium')));
+  currentDiff = p.difficulty || 'medium';
+  tags = [...(p.tags||[])];
+  renderTags();
+  document.getElementById('examples-list').innerHTML = '';
+  (p.examples||[]).forEach(ex => addExample(ex));
+  document.getElementById('tests-list').innerHTML = '';
+  (p.tests||[]).forEach(t => addTest(t));
+  document.getElementById('result-box').classList.remove('show');
+  showToast(`"${p.title}" loaded — edit and save to update`, 'info');
+};
+
+// ── Toast ────────────────────────────────────────────────
+window.showToast = (msg, type = 'info') => {
+  document.querySelector('.toast')?.remove();
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => {
+    t.style.animation = 'slideIn 0.25s ease reverse';
+    setTimeout(() => t.remove(), 250);
+  }, 3000);
+};
+
+// ── Init ─────────────────────────────────────────────────
+addExample();
+addTest();
+</script>
+</body>
+</html>
