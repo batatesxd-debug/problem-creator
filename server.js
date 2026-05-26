@@ -40,9 +40,11 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
 
 app.use(cors({
   origin: (origin, cb) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
+    // Allow requests with no origin (file://, curl, mobile apps, etc.)
     if (!origin) return cb(null, true);
-    if (ALLOWED_ORIGINS.includes(origin) || ALLOWED_ORIGINS.includes('*')) return cb(null, true);
+    // If list is empty OR contains '*' → allow everything
+    if (!ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes('*')) return cb(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true,
@@ -71,6 +73,9 @@ const verifyAdmin = async (req, res, next) => {
 };
 
 // ── Health check ─────────────────────────────────────────
+app.get('/',       (_req, res) => res.json({ status: 'ok', service: 'Problem Bank API' }));
+app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'Problem Bank API' }));
+
 app.get('/', (_req, res) => res.json({ status: 'ok', service: 'Problem Bank API' }));
 
 // ────────────────────────────────────────────────────────

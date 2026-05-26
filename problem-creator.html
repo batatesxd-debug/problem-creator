@@ -374,6 +374,10 @@
     </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center" id="login-btn" onclick="doLogin()">Sign In</button>
     <div id="login-error" style="color:var(--danger);font-size:0.78rem;margin-top:0.75rem"></div>
+    <div style="margin-top:1rem;border-top:1px solid var(--gray-300);padding-top:0.9rem">
+      <button onclick="checkServer()" style="background:none;border:1.5px solid var(--gray-300);border-radius:8px;padding:0.4rem 0.85rem;font-size:0.75rem;font-weight:600;color:var(--gray-600);cursor:pointer;width:100%">🔍 Check Server Status</button>
+      <div id="server-status" style="margin-top:0.5rem;font-size:0.75rem;text-align:center"></div>
+    </div>
   </div>
 </div>
 
@@ -495,22 +499,22 @@ import { initializeApp }         from 'https://www.gstatic.com/firebasejs/10.12.
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
-const FIREBASE_CONFIG = {
-  apiKey:            "REPLACE_ME",
-  authDomain:        "REPLACE_ME.firebaseapp.com",
-  projectId:         "REPLACE_ME",
-  storageBucket:     "REPLACE_ME.appspot.com",
-  messagingSenderId: "REPLACE_ME",
-  appId:             "REPLACE_ME",
+const firebaseConfig = {
+  apiKey: "AIzaSyCkdqBDlyjxYGITnGNE7phfNxUguJ2gm-Q",
+  authDomain: "icpc-academy-388f8.firebaseapp.com",
+  projectId: "icpc-academy-388f8",
+  storageBucket: "icpc-academy-388f8.firebasestorage.app",
+  messagingSenderId: "1047619006167",
+  appId: "1:1047619006167:web:40ca0013ea7cb0d8984a92",
+  measurementId: "G-4K3RJXLZSQ"
 };
 
 // ─────────────────────────────────────────────────────────
 //  ⚠️  REPLACE with your deployed Railway / Render URL
 // ─────────────────────────────────────────────────────────
-const API_BASE = 'https://your-problem-api.railway.app';
-
+const API_BASE = 'https://problem-creator-production.up.railway.app';
 // ── Init Firebase ────────────────────────────────────────
-const firebaseApp = initializeApp(FIREBASE_CONFIG);
+const firebaseApp = initializeApp(firebaseConfig);
 const auth        = getAuth(firebaseApp);
 
 // ── State ────────────────────────────────────────────────
@@ -545,10 +549,42 @@ window.doLogin = async () => {
   try {
     await signInWithEmailAndPassword(auth, email, pass);
   } catch (e) {
-    err.textContent = e.message.replace('Firebase: ', '');
+    const msg = e.message.replace('Firebase: ', '');
+    // Make Firebase error messages more readable
+    if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found')
+      err.textContent = '❌ Wrong email or password.';
+    else if (e.code === 'auth/too-many-requests')
+      err.textContent = '⏳ Too many attempts. Try again later.';
+    else if (e.code === 'auth/network-request-failed')
+      err.textContent = '🌐 Network error. Check your internet connection.';
+    else
+      err.textContent = msg;
   } finally {
     btn.textContent = 'Sign In';
     btn.disabled    = false;
+  }
+};
+
+window.checkServer = async () => {
+  const el = document.getElementById('server-status');
+  el.textContent = '⏳ Checking…';
+  el.style.color = 'var(--gray-400)';
+  try {
+    const resp = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(8000) });
+    if (resp.ok) {
+      el.textContent = '✅ Server is online!';
+      el.style.color = 'var(--success)';
+    } else {
+      el.textContent = `⚠️ Server responded with error ${resp.status}`;
+      el.style.color = 'var(--warning)';
+    }
+  } catch (e) {
+    if (e.name === 'TimeoutError') {
+      el.textContent = '❌ Server timed out (may be sleeping — try again in 30s)';
+    } else {
+      el.textContent = `❌ Cannot reach server: ${e.message}`;
+    }
+    el.style.color = 'var(--danger)';
   }
 };
 
